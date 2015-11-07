@@ -27,6 +27,10 @@ var DefaultDNSServers = []string{
 	"8.8.4.4",
 }
 
+var DefaultDiskProvision ={}string{
+	"thin",
+}
+
 type networkInterface struct {
 	deviceName  string
 	label       string
@@ -38,6 +42,7 @@ type networkInterface struct {
 type hardDisk struct {
 	size int64
 	iops int64
+	prov string
 }
 
 type virtualMachine struct {
@@ -199,6 +204,11 @@ func resourceVSphereVirtualMachine() *schema.Resource {
 							Optional: true,
 							ForceNew: true,
 						},
+						"prov": &schema.Schema{
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
 					},
 				},
 			},
@@ -303,6 +313,11 @@ func resourceVSphereVirtualMachineCreate(d *schema.ResourceData, meta interface{
 			}
 			if v, ok := disk["iops"].(int); ok && v != 0 {
 				disks[i].iops = int64(v)
+			}
+			if v, ok := disk["prov"].(string); ok && v != "" {
+				vm.prov = v
+			} else {
+				vm.prov = DefaultDiskProvision
 			}
 		}
 		vm.hardDisks = disks
@@ -870,7 +885,7 @@ func (vm *virtualMachine) createVirtualMachine(c *govmomi.Client) error {
 	for _, hd := range vm.hardDisks {
 		log.Printf("[DEBUG] add hard disk: %v", hd.size)
 		log.Printf("[DEBUG] add hard disk: %v", hd.iops)
-		err = addHardDisk(newVM, hd.size, hd.iops, "thin")
+		err = addHardDisk(newVM, hd.size, hd.iops, hd.prov)
 		if err != nil {
 			return err
 		}
@@ -1090,7 +1105,7 @@ func (vm *virtualMachine) deployVirtualMachine(c *govmomi.Client) error {
 	log.Printf("[DEBUG] ip address: %v", ip)
 
 	for i := 1; i < len(vm.hardDisks); i++ {
-		err = addHardDisk(newVM, vm.hardDisks[i].size, vm.hardDisks[i].iops, "eager_zeroed")
+		err = addHardDisk(newVM, vm.hardDisks[i].size, vm.hardDisks[i].iops, vm.hardDisks[i].prov)
 		if err != nil {
 			return err
 		}
