@@ -27,9 +27,7 @@ var DefaultDNSServers = []string{
 	"8.8.4.4",
 }
 
-var DefaultDiskProvision ={}string{
-	"thin",
-}
+var DefaultDiskProvision string = "thin"
 
 type networkInterface struct {
 	deviceName  string
@@ -315,9 +313,9 @@ func resourceVSphereVirtualMachineCreate(d *schema.ResourceData, meta interface{
 				disks[i].iops = int64(v)
 			}
 			if v, ok := disk["prov"].(string); ok && v != "" {
-				vm.prov = v
+				disks[i].prov = v
 			} else {
-				vm.prov = DefaultDiskProvision
+				disks[i].prov = DefaultDiskProvision
 			}
 		}
 		vm.hardDisks = disks
