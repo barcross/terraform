@@ -2,7 +2,7 @@
 
 IMPROVEMENTS:
 
-  * provider/vsphere: Add abilty to alter disk provision type: thin etc
+  * provider/vsphere: Add abilty to alter disk provision type: thin etc.
 
 ## 0.6.7 (Unreleased)
 
